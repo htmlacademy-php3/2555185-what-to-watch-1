@@ -1,13 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Http\Responses\ErrorResponse;
 use App\Http\Responses\SuccessResponse;
 use App\Models\Film;
-use App\Services\FilmService; // Изменено с MovieService
+use App\Services\FilmService;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+
+// Изменено с MovieService
 
 class FilmController extends Controller
 {
