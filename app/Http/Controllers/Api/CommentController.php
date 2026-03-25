@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class FavoriteController extends Controller
+class CommentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +14,7 @@ class FavoriteController extends Controller
      */
     public function index()
     {
-      return 'this is Fav film';
+      return 'this is Comment';
     }
 
     /**
@@ -60,4 +61,5 @@ class FavoriteController extends Controller
     {
         //
     }
+  private function updateFilmRating(){}
 }

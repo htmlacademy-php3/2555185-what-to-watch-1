@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class GenreController extends Controller
+class PromoController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +14,7 @@ class GenreController extends Controller
      */
     public function index()
     {
-      return 'this is Ganre Film';
+      return 'this is Promo poster';
     }
 
     /**

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class CommentController extends Controller
+class GenreController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +14,7 @@ class CommentController extends Controller
      */
     public function index()
     {
-      return 'this is Comment';
+      return 'this is Ganre Film';
     }
 
     /**
@@ -60,5 +61,4 @@ class CommentController extends Controller
     {
         //
     }
-  private function updateFilmRating(){}
 }
