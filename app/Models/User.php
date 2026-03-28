@@ -23,7 +23,6 @@ class User extends Authenticatable
         'email',
         'password',
         'avatar',
-        'role',
     ];
 
     /**
@@ -67,5 +66,21 @@ class User extends Authenticatable
   public function moderatorActions()
   {
     return $this->hasMany(ModeratorAction::class, 'moderator_id');
+  }
+
+public function roles()
+{
+  return $this->belongsToMany(Role::class);
+}
+
+// Вспомогательные методы для проверки ролей
+  public function hasRole($slug)
+  {
+    return $this->roles()->where('slug', $slug)->exists();
+  }
+
+  public function hasAnyRole($slugs)
+  {
+    return $this->roles()->whereIn('slug', (array) $slugs)->exists();
   }
 }

@@ -8,9 +8,8 @@ use App\Http\Responses\SuccessResponse;
 use App\Models\Film;
 use App\Services\FilmService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate; // ← ДОБАВИТЬ ЭТОТ ИМПОРТ
 use Symfony\Component\HttpFoundation\Response;
-
-// Изменено с MovieService
 
 class FilmController extends Controller
 {
@@ -19,7 +18,7 @@ class FilmController extends Controller
    */
   protected $filmService;
 
-  public function __construct(FilmService $filmService) // Изменено с MovieService
+  public function __construct(FilmService $filmService)
   {
     $this->filmService = $filmService;
   }
@@ -73,20 +72,15 @@ class FilmController extends Controller
   /**
    * Update the specified resource in storage.
    */
-  public function update(Request $request, $id)
+  public function update(Request $request, Film $film) // Используем Route Model Binding
   {
-    $film = Film::find($id);
-
-    if (!$film) {
-      return new ErrorResponse(
-        [],
-        'Фильм не найден',
-        Response::HTTP_NOT_FOUND
-      );
+    if (Gate::denies('update-film', $film)) {
+      return response()->json([
+        'message' => 'У вас нет прав на обновление этого фильма'
+      ], 403);
     }
 
     $validated = $request->validate([
-      'imdb_id' => 'sometimes|string|unique:films,imdb_id,' . $id,
       'title' => 'sometimes|string|max:255',
       'year' => 'sometimes|string',
       'plot' => 'nullable|string',
@@ -94,24 +88,22 @@ class FilmController extends Controller
       'genre' => 'nullable|array'
     ]);
 
+    // Обновляем фильм
     $film->update($validated);
 
-    return new SuccessResponse($film);
+    return new SuccessResponse($film, Response::HTTP_OK);
   }
 
   /**
    * Remove the specified resource from storage.
    */
-  public function destroy($id)
+  public function destroy(Film $film) // ← Используем Route Model Binding вместо $id
   {
-    $film = Film::find($id);
-
-    if (!$film) {
-      return new ErrorResponse(
-        [],
-        'Фильм не найден',
-        Response::HTTP_NOT_FOUND
-      );
+    // Проверяем права через Gate (опционально)
+    if (Gate::denies('delete-film', $film)) {
+      return response()->json([
+        'message' => 'У вас нет прав на удаление этого фильма'
+      ], 403);
     }
 
     $film->delete();
@@ -125,7 +117,6 @@ class FilmController extends Controller
   public function searchByImdbId(string $imdbId)
   {
     try {
-      // Используем новый метод findOrCreateFromApi
       $film = $this->filmService->findOrCreateFromApi($imdbId);
 
       if (!$film) {
@@ -171,5 +162,32 @@ class FilmController extends Controller
       ->get();
 
     return new SuccessResponse($similarFilms);
+  }
+
+  /**
+   * Модерация фильма (добавляем метод из задания)
+   */
+  public function moderate(Request $request, Film $film)
+  {
+    // Проверяем, что пользователь - модератор или админ
+    if (!auth()->user()->hasAnyRole(['moderator', 'admin'])) {
+      return response()->json([
+        'message' => 'Только модераторы могут модерировать фильмы'
+      ], 403);
+    }
+
+    $validated = $request->validate([
+      'status' => 'required|in:approved,rejected',
+      'moderation_note' => 'nullable|string'
+    ]);
+
+    $film->update([
+      'moderation_status' => $validated['status'],
+      'moderated_by' => auth()->id(),
+      'moderated_at' => now(),
+      'moderation_note' => $validated['moderation_note'] ?? null
+    ]);
+
+    return new SuccessResponse($film, Response::HTTP_OK);
   }
 }
