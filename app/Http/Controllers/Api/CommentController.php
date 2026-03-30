@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
@@ -46,20 +48,42 @@ class CommentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        //
+  public function update(Request $request, Comment $comment)
+  {
+    // Проверяем права через Gate
+    if (Gate::denies('update-comment', $comment)) {
+      return response()->json([
+        'message' => 'У вас нет прав на редактирование этого комментария'
+      ], 403);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+    // Валидация и обновление
+    $validated = $request->validate([
+      'content' => 'required|string|max:1000'
+    ]);
+
+    $comment->update($validated);
+
+    return response()->json([
+      'data' => $comment,
+      'message' => 'Комментарий обновлен'
+    ]);
+  }
+
+  public function destroy(Comment $comment)
+  {
+    // Проверяем права через Gate
+    if (Gate::denies('delete-comment', $comment)) {
+      return response()->json([
+        'message' => 'У вас нет прав на удаление этого комментария'
+      ], 403);
     }
+
+    $comment->delete();
+
+    return response()->json([
+      'message' => 'Комментарий удален'
+    ]);
+  }
   private function updateFilmRating(){}
 }
